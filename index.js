@@ -4,6 +4,11 @@ const fetch = require('node-fetch');
 const fs = require('fs');
 const app = express();
 
+const cors = require('cors');
+app.use(cors({
+  origin: 'https://door4.com'
+}));
+
 // 🛠️ Configurable settings
 const config = {
   port: 4000,
