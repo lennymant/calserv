@@ -11,15 +11,16 @@ app.use(cors({
 
 // 🛠️ Configurable settings
 const config = {
-  port: 4000,
-  calendarId: 'leon.calverley@door4.com', // You can replace with a specific calendar email
-  queryTerm: 'SPRINT-SLOT',         // Leave blank to match all events
-  daysRange: 30,          // How many days ahead to query
-  timezone: 'en-GB',     // Locale for date formatting
-  timeFormat: { hour: '2-digit', minute: '2-digit' },
-  dateFormat: { weekday: 'long', day: 'numeric', month: 'long' }
-};
-
+    port: 4000,
+    calendarId: 'leon.calverley@door4.com',
+    queryTerm: 'SPRINT-SLOT',
+    minOffsetDays: 2,        // 👈 NEW: Skip slots in the next 2 days
+    daysRange: 30,
+    timezone: 'en-GB',
+    timeFormat: { hour: '2-digit', minute: '2-digit' },
+    dateFormat: { weekday: 'long', day: 'numeric', month: 'long' }
+  };
+  
 // 🟢 Startup
 console.log('🟢 Starting Calendar API service...');
 
@@ -35,9 +36,12 @@ try {
 app.get('/slots', async (req, res) => {
   try {
     const now = new Date();
+    const start = new Date();
+    start.setDate(now.getDate() + config.minOffsetDays); // start = min days ahead
+    
     const end = new Date();
     end.setDate(now.getDate() + config.daysRange);
-
+    
     const jwtPayload = {
       iss: serviceAccount.client_email,
       scope: 'https://www.googleapis.com/auth/calendar.readonly',
@@ -59,10 +63,10 @@ app.get('/slots', async (req, res) => {
     const access_token = tokenJson.access_token;
     if (!access_token) throw new Error('No access_token received');
     console.log('🎟️ Access token retrieved');
-
-    const calendarUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(config.calendarId)}/events?singleEvents=true&orderBy=startTime&timeMin=${now.toISOString()}&timeMax=${end.toISOString()}${config.queryTerm ? `&q=${encodeURIComponent(config.queryTerm)}` : ''}`;
+    
+    const calendarUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(config.calendarId)}/events?singleEvents=true&orderBy=startTime&timeMin=${start.toISOString()}&timeMax=${end.toISOString()}${config.queryTerm ? `&q=${encodeURIComponent(config.queryTerm)}` : ''}`;
     console.log('📡 Fetching events from:', calendarUrl);
-
+    
     const eventsRes = await fetch(calendarUrl, {
       headers: { Authorization: `Bearer ${access_token}` }
     });
