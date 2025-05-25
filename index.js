@@ -95,7 +95,20 @@ app.get('/slots', async (req, res) => {
   }
 });
 
-// code to update config.json
+// publish config.json by GET request
+app.get('/config', (req, res) => {
+    res.json({
+      config: {
+        calendarId: config.calendarId,
+        queryTerm: config.queryTerm,
+        minOffsetDays: config.minOffsetDays,
+        daysRange: config.daysRange
+      }
+    });
+  });
+  
+
+// code to update config.json by POST request
 app.post('/config/update', (req, res) => {
     const newEditable = req.body;
   
