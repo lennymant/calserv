@@ -78,16 +78,27 @@ app.get('/slots', async (req, res) => {
     const eventsData = await eventsRes.json();
     console.log('📦 Event API result:', JSON.stringify(eventsData, null, 2));
 
-    const choices = (eventsData.items || []).map(event => {
+    const dateFormatter = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Europe/London',
+        ...config.dateFormat
+      });
+      const timeFormatter = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Europe/London',
+        ...config.timeFormat
+      });
+      
+
+
+      const choices = (eventsData.items || []).map(event => {
         const start = event.start.dateTime || event.start.date;
         const end = event.end.dateTime || event.end.date;
       
         return {
-          text: `${new Date(start).toLocaleDateString(config.timezone, config.dateFormat)} – ${new Date(start).toLocaleTimeString([], config.timeFormat)}–${new Date(end).toLocaleTimeString([], config.timeFormat)}`,
+          text: `${dateFormatter.format(new Date(start))} – ${timeFormatter.format(new Date(start))}–${timeFormatter.format(new Date(end))}`,
           value: start
         };
       });
-      
+            
     res.json({ choices });
   } catch (err) {
     console.error('❌ ERROR in /slots:', err);
