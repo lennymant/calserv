@@ -1,25 +1,29 @@
-const express = require('express');
+express = require('express');
 const jwt = require('jsonwebtoken');
 const fetch = require('node-fetch');
 const fs = require('fs');
 const app = express();
-
 const cors = require('cors');
-app.use(cors({
-  origin: 'https://door4.com'
-}));
+app.use(cors({ origin: 'https://door4.com' }));
+//parse json
+app.use(express.json());
 
-// 🛠️ Configurable settings
+// Load dynamic values
+let editableConfig = require('./config.json');
+
+// Static values
+const staticConfig = {
+  port: 4000,
+  timezone: 'en-GB',
+  timeFormat: { hour: '2-digit', minute: '2-digit' },
+  dateFormat: { weekday: 'long', day: 'numeric', month: 'long' }
+};
+
+// Merge both configs
 const config = {
-    port: 4000,
-    calendarId: 'leon.calverley@door4.com',
-    queryTerm: 'SPRINT-SLOT',
-    minOffsetDays: 2,        // 👈 NEW: Skip slots in the next 2 days
-    daysRange: 14,
-    timezone: 'en-GB',
-    timeFormat: { hour: '2-digit', minute: '2-digit' },
-    dateFormat: { weekday: 'long', day: 'numeric', month: 'long' }
-  };
+  ...staticConfig,
+  ...editableConfig
+};
   
 // 🟢 Startup
 console.log('🟢 Starting Calendar API service...');
@@ -90,6 +94,24 @@ app.get('/slots', async (req, res) => {
     res.status(500).json({ error: 'Failed to retrieve slots.' });
   }
 });
+
+// code to update config.json
+app.post('/config/update', (req, res) => {
+    const newEditable = req.body;
+  
+    try {
+      fs.writeFileSync('./config.json', JSON.stringify(newEditable, null, 2));
+      editableConfig = newEditable;
+      Object.assign(config, newEditable); // Apply new settings immediately
+      console.log('⚙️ Config updated:', config);
+      res.status(200).send({ success: true });
+    } catch (err) {
+      console.error('❌ Failed to write config:', err);
+      res.status(500).send({ error: 'Config update failed.' });
+    }
+  });
+  
+
 
 app.listen(config.port, () => {
   console.log(`✅ Calendar slot API running at http://localhost:${config.port}`);
