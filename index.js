@@ -15,7 +15,7 @@ const config = {
     calendarId: 'leon.calverley@door4.com',
     queryTerm: 'SPRINT-SLOT',
     minOffsetDays: 2,        // 👈 NEW: Skip slots in the next 2 days
-    daysRange: 30,
+    daysRange: 14,
     timezone: 'en-GB',
     timeFormat: { hour: '2-digit', minute: '2-digit' },
     dateFormat: { weekday: 'long', day: 'numeric', month: 'long' }
