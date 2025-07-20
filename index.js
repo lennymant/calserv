@@ -99,7 +99,12 @@ app.get('/slots', async (req, res) => {
         };
       });
             
-    res.json({ choices });
+    res.json({ 
+      choices,
+      config: {
+        response_date: new Date().toISOString().split('T')[0] // YYYY-MM-DD format
+      }
+    });
   } catch (err) {
     console.error('❌ ERROR in /slots:', err);
     res.status(500).json({ error: 'Failed to retrieve slots.' });
